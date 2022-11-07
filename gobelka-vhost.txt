@@ -1,100 +1,223 @@
 server {
-  listen 8080;
-  listen [::]:8080;
-  server_name gobelka.com;
-  {{root}}
-
-  try_files $uri $uri/ /index.php?$args;
-  index index.php index.html;
-
-  location ~ \.php$ {
-    include fastcgi_params;
-    fastcgi_intercept_errors on;
-    fastcgi_index index.php;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    try_files $uri =404;
-    fastcgi_read_timeout 3600;
-    fastcgi_send_timeout 3600;
-    fastcgi_param HTTPS "on";
-    fastcgi_pass 127.0.0.1:{{php_fpm_port}};
-    fastcgi_param PHP_VALUE "{{php_settings}}";
-  }
-
-  if (-f $request_filename) {
-    break;
-  }
-}
-
-server {
   listen 80;
   listen [::]:80;
   listen 443 ssl http2;
   listen [::]:443 ssl http2;
   {{ssl_certificate_key}}
   {{ssl_certificate}}
-  server_name gobelka.com;
-  {{root}}
+  server_name www.belkagroups.com;
+  return 301 https://belkagroups.com$request_uri;
+}
 
-  {{nginx_access_log}}
-  {{nginx_error_log}}
-
-  if ($scheme != "https") {
-    rewrite ^ https://$host$uri permanent;
-  }
-
-  location ~ /.well-known {
-    auth_basic off;
-    allow all;
-  }
-
-  {{settings}}
-
-  location ~/(wp-admin/|wp-login.php) {
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $remote_addr;
-    proxy_set_header X-Forwarded-Host $http_host;
-    proxy_set_header Host $host;
-    proxy_pass http://127.0.0.1:8080;
-    proxy_max_temp_file_size 0;
-    proxy_connect_timeout      7200;
-    proxy_send_timeout         7200;
-    proxy_read_timeout         7200;
-    proxy_buffer_size          128k;
-    proxy_buffers              4 256k;
-    proxy_busy_buffers_size    256k;
-    proxy_temp_file_write_size 256k;
-  }
-
-  location / {
-    {{varnish_proxy_pass}}
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Forwarded-Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_hide_header X-Varnish;
-    proxy_redirect off;
-    proxy_max_temp_file_size 0;
-    proxy_connect_timeout      720;
-    proxy_send_timeout         720;
-    proxy_read_timeout         720;
-    proxy_buffer_size          128k;
-    proxy_buffers              4 256k;
-    proxy_busy_buffers_size    256k;
-    proxy_temp_file_write_size 256k;
-  }
-
-  location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf|map)$ {
-    add_header Access-Control-Allow-Origin "*";
-    expires max;
-    access_log off;
+server {
+    listen 8080;
+    listen [::]:8080;
+    server_name belkagroups.com;
+    {{root}}
+  
+    try_files $uri $uri/ /index.php?$args;
+    index index.php index.html;
+  
+    location ~ \.php$ {
+      include fastcgi_params;
+      fastcgi_intercept_errors on;
+      fastcgi_index index.php;
+      fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+      try_files $uri =404;
+      fastcgi_read_timeout 3600;
+      fastcgi_send_timeout 3600;
+      fastcgi_param HTTPS "on";
+      fastcgi_pass 127.0.0.1:{{php_fpm_port}};
+      fastcgi_param PHP_VALUE "{{php_settings}}";
+    }
+  
+    if (-f $request_filename) {
+      break;
+    }
   }
   
-  # START Nginx Rewrites for Rank Math Sitemaps
-  rewrite ^/sitemap_index.xml$ /index.php?sitemap=1 last;
-  rewrite ^/([^/]+?)-sitemap([0-9]+)?.xml$ /index.php?sitemap=$1&sitemap_n=$2 last;
-  # END Nginx Rewrites for Rank Math Sitemaps
-
-  if (-f $request_filename) {
-    break;
+  server {
+    listen 80;
+    listen [::]:80;
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    {{ssl_certificate_key}}
+    {{ssl_certificate}}
+    server_name belkagroups.com;
+    {{root}}
+  
+    {{nginx_access_log}}
+    {{nginx_error_log}}
+  
+    if ($scheme != "https") {
+      rewrite ^ https://$host$uri permanent;
+    }
+  
+    location ~ /.well-known {
+      auth_basic off;
+      allow all;
+    }
+  
+    {{settings}}
+  
+    location ~/(wp-admin/|wp-login.php) {
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $remote_addr;
+      proxy_set_header X-Forwarded-Host $http_host;
+      proxy_set_header Host $host;
+      proxy_pass http://127.0.0.1:8080;
+      proxy_max_temp_file_size 0;
+      proxy_connect_timeout      7200;
+      proxy_send_timeout         7200;
+      proxy_read_timeout         7200;
+      proxy_buffer_size          128k;
+      proxy_buffers              4 256k;
+      proxy_busy_buffers_size    256k;
+      proxy_temp_file_write_size 256k;
+    }
+  
+    location / {
+      {{varnish_proxy_pass}}
+      proxy_set_header Host $http_host;
+      proxy_set_header X-Forwarded-Host $http_host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_hide_header X-Varnish;
+      proxy_redirect off;
+      proxy_max_temp_file_size 0;
+      proxy_connect_timeout      720;
+      proxy_send_timeout         720;
+      proxy_read_timeout         720;
+      proxy_buffer_size          128k;
+      proxy_buffers              4 256k;
+      proxy_busy_buffers_size    256k;
+      proxy_temp_file_write_size 256k;
+    }
+  
+    location ~* ^.+\.(css|js|jpg|jpeg|gif|png|ico|gz|svg|svgz|ttf|otf|woff|woff2|eot|mp4|ogg|ogv|webm|webp|zip|swf|map)$ {
+      add_header Access-Control-Allow-Origin "*";
+      expires max;
+      access_log off;
+    }
+    
+    # START Nginx Rewrites for Rank Math Sitemaps
+    rewrite ^/sitemap_index.xml$ /index.php?sitemap=1 last;
+    rewrite ^/([^/]+?)-sitemap([0-9]+)?.xml$ /index.php?sitemap=$1&sitemap_n=$2 last;
+    # END Nginx Rewrites for Rank Math Sitemaps
+    
+    # Delete URL
+    location /belka-gallery/ { return 410; }
+    location /belka-vs-wall-paint/ { return 410; }
+    location /uncategorized-en/ { return 410; }
+    location /de/galerie { return 410; }
+    location /de/belka-tapete-vergleichen/ { return 410; }
+    location /de/belka-wandfarbe-vergleichen/ { return 410; }
+    location /de/schulungsvideos/ { return 410; }
+    location /de/wie-anwenden-belka-tapete/ { return 410; }
+    location /faq { return 410; }
+    location /shop/kr/ { return 410; }
+    location /who-we-are.html { return 410; }
+    location /education-videos { return 410; }
+    location /belka-on-every-surface { return 410; }
+    location /kr/bedroom-gallery { return 410; }
+    location /kr/belka-benefits { return 410; }
+    location /kr/baby-room-gallery { return 410; }
+    location /kr/living-room-gallery { return 410; }
+    location /kr/on-every-surface { return 410; }
+    location /kr/what-is-belka { return 410; }
+    location /kr/belka-vs-wallpaper { return 410; }
+    location /kr/office-design-gallery { return 410; }
+    location /kr/easy-to-apply { return 410; }
+    location /kr/become-a-distributor { return 410; }
+    location /kr/preparation-steps { return 410; }
+    location /kr/preparation-steps.php { return 410; }
+    location /basinda-biz/ { return 410; }
+    location /belka-features/ { return 410; }
+    location /duvar-kagidi-nasil-uygulanir/ { return 410; }
+    location /hakkimizda/ { return 410; }
+    location /how-to-apply-belka-wallpaper/ { return 410; }
+    location /pamuk-duvar-kagidi-nedir/ { return 410; }
+    location /post-1-en/ { return 410; }
+    location /post-2-en/ { return 410; }
+    location /post-3-en/ { return 410; }
+    location /post-4-en/ { return 410; }
+    location /post-5-en/ { return 410; }
+    location /post1/ { return 410; }
+    location /post2/ { return 410; }
+    location /post4/ { return 410; }
+    location /post5/ { return 410; }
+    location /post6/ { return 410; }
+    location /sikca-sorulan-sorular/ { return 410; }
+    location /yeni-teknoloji-duvar-kagidi/ { return 410; }
+    location /who-who-we-are.html { return 410; }
+    location /tiles-floors-coverings/index.html { return 410; }
+    location /bedroom-designs { return 410; }
+    location /environment-wallpaper.html { return 410; }
+    location /shop/baby-room-gallery { return 410; }
+    location /lists.html { return 410; }
+    location /kr/why-belka { return 410; }
+    location /pamuk-duvar-kagidi-ozellikleri/ { return 410; }
+    location /galeri/ { return 410; }
+    location /belka-ile-duvar-boyasinin-farki/ { return 410; }
+    location /neden-belka/ { return 410; }
+    location /sertifikalar/ { return 410; }
+    location /katalog/ { return 410; }
+    location /egitim-videolari/ { return 410; }
+    location /belka-ile-duvar-kagidi-farki/ { return 410; }
+    location /iletisim/ { return 410; }
+    location /belka-bayiligi/ { return 410; }
+    location /kisisel-verilerin-korunmasi-kanunu-aydinlatma-metni/ { return 410; }
+    location /post3/ { return 410; }
+    location /ana-sayfa/ { return 410; }
+    location /her-yuzeye-uygun-duvar-kagidi/ { return 410; }
+    location /why-belka { return 410; }
+    location /all-categories/neutral-colors/neutral-gray { return 410; }
+    location /compare-in-detail { return 410; }
+    location /tr/her-yuzeye-uygun-duvar-kagidi { return 410; }
+    location /application-steps { return 410; }
+    location /belka-vs-paint { return 410; }
+    location /all-categories/styles/classic { return 410; }
+    location /her-yuzeyde-belka { return 410; }
+    location /product-category/grey { return 410; }
+    location /product-category/red { return 410; }
+    location /product-category/black/ { return 410; }
+    location /living-room-gallery { return 410; }
+    location /gallery { return 410; }
+    location /product-category/blue { return 410; }
+    location /product-category/green { return 410; }
+    location /product-category/brown { return 410; }
+    location /product-category/purple { return 410; }
+    location /belka-features { return 410; }
+    location /galerie/ { return 410; }
+    location /product-category/cream { return 410; }
+    location /how-to-apply-belka-wallpaper { return 410; }
+    location /de/belka-auf-jeder-oberflaeche/ { return 410; }
+    location /belka-auf-jeder-oberflaeche { return 410; }
+    location /belka-vs-wallpaper.html { return 410; }
+    location /en/how-to-apply-belka-wallpaper/ { return 410; }
+    
+    
+     # 301 URL
+    location  ~ ^/contact-us(.*) {
+      return 301  /contact/ ;
   }
-}
+    location  ~ ^/zertifizierungden/(.*) {
+      return 301  /de/zertifizierungen/ ;
+  }
+    location  ~ ^/de/zertifizierungden/(.*) {
+      return 301  /de/zertifizierungen/ ;
+  }
+    location  ~ ^/zertifizierungden(.*) {
+      return 301  /de/zertifizierungen/ ;
+  }
+    location  ~ ^/ghana(.*) {
+      return 301  /gh/ ;
+  }
+    location  ~ ^/contactus(.*) {
+      return 301  /contact/ ;
+  }
+  
+    if (-f $request_filename) {
+      break;
+    }
+  }
